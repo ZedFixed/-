@@ -81,7 +81,7 @@ do
                 equipTools()
                 task.wait(0.430)
                 unequipTools()
-                task.wait(0.2430)
+                task.wait(0.430)
             end
         end)
     end
