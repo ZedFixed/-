@@ -1,13 +1,3 @@
---[[
-    AKUNBITCH DEVOURER - Painel compacto, drag, com somente 1 função:
-    FPS Devourer (spamma ferramentas escolhidas no textbox).
-    Remove todos acessórios/roupas/layered clothing ao executar o script.
-    Estética: painel violeta, título branco, toggle ON/OFF com círculo vermelho/verde.
-    70% do tamanho original, drag MirandaTween+ (PC/mobile).
-    Painel aparece no canto superior direito da tela.
-    Botão chamado "AkunBitch Devourer".
-    by LennonTheGoat
-]]
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
@@ -165,7 +155,7 @@ local title = Instance.new("TextLabel", main)
 title.Name = "Title"
 title.Size = UDim2.new(1, 0, 0, TITLE_HEIGHT)
 title.Position = UDim2.new(0,0,0,0)
-title.Text = "Akin tong Script"
+title.Text = "Tubol"
 title.Font = Enum.Font.GothamBlack
 title.TextSize = TITLE_FONT_SIZE
 title.BackgroundTransparency = 1
