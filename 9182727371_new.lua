@@ -79,9 +79,9 @@ do
         task.spawn(function()
             while FPSDevourer.running and not FPSDevourer._stop do
                 equipTools()
-                task.wait(0.0001)
+                task.wait(0.002)
                 unequipTools()
-                task.wait(0.0001)
+                task.wait(0.002)
             end
         end)
     end
