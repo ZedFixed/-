@@ -57,6 +57,14 @@ do
         if tool then tool.Parent = character return true end
         return false
     end
+    local function unequipTungBat()
+        local character = player.Character
+        local backpack = player:FindFirstChild("Backpack")
+        if not character or not backpack then return false end
+        local tool = character:FindFirstChild(TOOL_NAME)
+        if tool then tool.Parent = backpack return true end
+        return false
+    end
 
 local FPSDevourer = {}
 do
