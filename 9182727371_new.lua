@@ -1,8 +1,9 @@
-
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
-local UserInputService = game:GetService("UserInputService")
 
 -- ========== REMOVE TODOS ACESSÓRIOS/ROUPAS AO EXECUTAR O SCRIPT ==========
 local function removeAllAccessoriesFromCharacter()
@@ -76,12 +77,26 @@ do
         if FPSDevourer.running then return end
         FPSDevourer.running = true
         FPSDevourer._stop = false
+
         task.spawn(function()
+            local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
             while FPSDevourer.running and not FPSDevourer._stop do
-                equipTools()
-                task.wait(0.015)
-                unequipTools()
-                task.wait(0.015)
+                if hrp then
+                    local pos = hrp.CFrame -- save position (anti-walkback)
+                    equipTools()
+                    RunService.Heartbeat:Wait()
+                    unequipTools()
+                    RunService.Heartbeat:Wait()
+                    -- restore position
+                    if hrp.Parent then
+                        hrp.CFrame = pos
+                    end
+                else
+                    equipTools()
+                    RunService.Heartbeat:Wait()
+                    unequipTools()
+                    RunService.Heartbeat:Wait()
+                end
             end
         end)
     end
