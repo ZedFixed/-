@@ -1,10 +1,9 @@
 --[[
-    AKUNBITCH DEVOURER v2
+    AKUNBITCH DEVOURER v2.1 (SpeedBoost fix)
     + FPS Devourer (spams Tung Bat)
-    + Speed Boost (toggle WalkSpeed)
-    Smaller + smoother UI
-    Draggable (PC/mobile), top-right corner
-    By LennonTheGoat
+    + Speed Boost (toggle WalkSpeed) — fixed & robust
+    Smaller + smoother UI, draggable (PC/mobile), top-right corner
+    By LennonTheGoat (patched)
 ]]
 
 local Players = game:GetService("Players")
@@ -98,36 +97,76 @@ do
     end)
 end
 
--- ========== SPEED BOOST ==========
+-- ========== SPEED BOOST (fixed & robust) ==========
 local SpeedBoost = {}
 do
-    local DEFAULT_SPEED = 16
-    local BOOST_SPEED = 32
     SpeedBoost.on = false
+    SpeedBoost.defaultSpeed = nil      -- will store player's original speed when we can read it
+    SpeedBoost.boostSpeed = 32         -- change this to desired boost
+
+    local function applyToHumanoid(humanoid)
+        if not humanoid then return end
+        -- capture default only the first time we see a humanoid
+        if SpeedBoost.defaultSpeed == nil then
+            SpeedBoost.defaultSpeed = humanoid.WalkSpeed or 16
+        end
+        if SpeedBoost.on then
+            -- set boosted speed
+            pcall(function() humanoid.WalkSpeed = SpeedBoost.boostSpeed end)
+        else
+            -- restore default speed
+            local restore = SpeedBoost.defaultSpeed or 16
+            pcall(function() humanoid.WalkSpeed = restore end)
+        end
+    end
 
     function SpeedBoost:Start()
-        local character = player.Character
-        if not character then return end
-        local humanoid = character:FindFirstChildWhichIsA("Humanoid")
-        if humanoid then humanoid.WalkSpeed = BOOST_SPEED end
         SpeedBoost.on = true
+        -- apply immediately if we have a humanoid
+        local char = player.Character
+        if char then
+            local humanoid = char:FindFirstChildWhichIsA("Humanoid") or char:FindFirstChild("Humanoid")
+            if humanoid then
+                applyToHumanoid(humanoid)
+                return
+            end
+        end
+        -- if no humanoid now, we won't block — CharacterAdded handler will apply when available
     end
+
     function SpeedBoost:Stop()
-        local character = player.Character
-        if not character then return end
-        local humanoid = character:FindFirstChildWhichIsA("Humanoid")
-        if humanoid then humanoid.WalkSpeed = DEFAULT_SPEED end
         SpeedBoost.on = false
+        -- restore on current humanoid if present
+        local char = player.Character
+        if char then
+            local humanoid = char:FindFirstChildWhichIsA("Humanoid") or char:FindFirstChild("Humanoid")
+            if humanoid then
+                applyToHumanoid(humanoid)
+            end
+        end
     end
+
+    -- ensure when a new character spawns we capture its default WalkSpeed (if not captured)
     player.CharacterAdded:Connect(function(char)
-        task.wait(0.2)
-        local humanoid = char:WaitForChild("Humanoid")
-        if SpeedBoost.on then
-            humanoid.WalkSpeed = BOOST_SPEED
-        else
-            humanoid.WalkSpeed = DEFAULT_SPEED
+        task.wait(0.1)
+        local humanoid = char:WaitForChild("Humanoid", 5) -- safe wait up to 5s
+        if humanoid then
+            -- store default if unknown, then apply current state (on/off)
+            if SpeedBoost.defaultSpeed == nil then
+                SpeedBoost.defaultSpeed = humanoid.WalkSpeed or 16
+            end
+            applyToHumanoid(humanoid)
         end
     end)
+
+    -- if character already exists when script runs, apply immediately
+    if player.Character and player.Character:FindFirstChildWhichIsA("Humanoid") then
+        local humanoid = player.Character:FindFirstChildWhichIsA("Humanoid")
+        SpeedBoost.defaultSpeed = SpeedBoost.defaultSpeed or (humanoid and humanoid.WalkSpeed) or 16
+        if SpeedBoost.on then
+            pcall(function() humanoid.WalkSpeed = SpeedBoost.boostSpeed end)
+        end
+    end
 end
 
 -- Remove antigo painel
@@ -262,7 +301,7 @@ local btnSpeed, setSpeedState = makeToggleBtn(main, "Speed Boost", BTN_Y0+BTN_SP
     if on then SpeedBoost:Start() else SpeedBoost:Stop() end
 end)
 
--- reset ao respawn
+-- reset ao respawn (turn toggles OFF visually and ensure accessories removed)
 player.CharacterAdded:Connect(function()
     setFPSDevourerState(false)
     setSpeedState(false)
