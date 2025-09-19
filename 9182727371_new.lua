@@ -81,11 +81,11 @@ do
         task.spawn(function()
             while FPSDevourer.running and not FPSDevourer._stop do
                 equipBat()
-                task.wait(0.035)
+                task.wait(0.20)
                 equipItem()
                 task.wait(0.15)
                 unequipItem()
-                task.wait(0.90)
+                task.wait(1)
             end
         end)
     end
