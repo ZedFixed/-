@@ -1,3 +1,11 @@
+--[[
+    AKUNBITCH DEVOURER v2
+    + FPS Devourer (spams Tung Bat)
+    + Speed Boost (toggle WalkSpeed)
+    Smaller + smoother UI
+    Draggable (PC/mobile), top-right corner
+    By LennonTheGoat
+]]
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
@@ -47,7 +55,7 @@ local BTN_SPACING = math.floor(32*SCALE)
 local FPSDevourer = {}
 do
     FPSDevourer.running = false
-    local TOOL_NAME = "Bat"
+    local TOOL_NAME = "Tung Bat"
 
     local function equipTungBat()
         local character = player.Character
@@ -66,29 +74,6 @@ do
         return false
     end
 
-local FPSDevourer = {}
-do
-    FPSDevourer.running = false
-    local TOOL_NAME = "Medusa's Head"
-
-    local function equipMedusaHead()
-        local character = player.Character
-        local backpack = player:FindFirstChild("Backpack")
-        if not character or not backpack then return false end
-        local tool = backpack:FindFirstChild(TOOL_NAME)
-        if tool then tool.Parent = character return true end
-        return false
-    end
-    local function unequipMedusaHead()
-        local character = player.Character
-        local backpack = player:FindFirstChild("Backpack")
-        if not character or not backpack then return false end
-        local tool = character:FindFirstChild(TOOL_NAME)
-        if tool then tool.Parent = backpack return true end
-        return false
-    end
-
-
     function FPSDevourer:Start()
         if FPSDevourer.running then return end
         FPSDevourer.running = true
@@ -97,18 +82,15 @@ do
             while FPSDevourer.running and not FPSDevourer._stop do
                 equipTungBat()
                 task.wait(0.035)
-                equipMedusaHead()
+                unequipTungBat()
                 task.wait(0.035)
-                unequipMedusaHead()
-                task.wait(0.50)
-                
             end
         end)
     end
     function FPSDevourer:Stop()
         FPSDevourer.running = false
         FPSDevourer._stop = true
-        unequipMedusaHead()
+        unequipTungBat()
     end
     player.CharacterAdded:Connect(function()
         FPSDevourer.running = false
@@ -119,8 +101,8 @@ end
 -- ========== SPEED BOOST ==========
 local SpeedBoost = {}
 do
-    local DEFAULT_SPEED = 25
-    local BOOST_SPEED = 25
+    local DEFAULT_SPEED = 16
+    local BOOST_SPEED = 32
     SpeedBoost.on = false
 
     function SpeedBoost:Start()
@@ -149,12 +131,12 @@ do
 end
 
 -- Remove antigo painel
-local old = playerGui:FindFirstChild("Nothing")
+local old = playerGui:FindFirstChild("AkunBitchDevourerPanel")
 if old then old:Destroy() end
 
 -- ========== PAINEL UI ==========
 local gui = Instance.new("ScreenGui")
-gui.Name = "Nothing"
+gui.Name = "AkunBitchDevourerPanel"
 gui.ResetOnSpawn = false
 gui.Parent = playerGui
 
@@ -209,7 +191,7 @@ end
 -- título
 local title = Instance.new("TextLabel", main)
 title.Size = UDim2.new(1, 0, 0, TITLE_HEIGHT)
-title.Text = "Tubol"
+title.Text = "AKUNBITCH DEVOURER"
 title.Font = Enum.Font.GothamBold
 title.TextSize = TITLE_FONT_SIZE
 title.BackgroundTransparency = 1
