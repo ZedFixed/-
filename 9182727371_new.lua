@@ -240,7 +240,7 @@ local function makeToggleBtn(parent, label, y, callback)
     end
 end
 
-local btnFPSDevourer, setFPSDevourerState = makeToggleBtn(main, "AkunBitch Devourer", BTN_Y0, function(on)
+local btnFPSDevourer, setFPSDevourerState = makeToggleBtn(main, "Start", BTN_Y0, function(on)
     if on then FPSDevourer:Start() else FPSDevourer:Stop() end
 end)
 
