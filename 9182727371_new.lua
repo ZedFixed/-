@@ -44,6 +44,7 @@ local BTN_ICON_PAD = math.floor(8*SCALE)
 local BTN_Y0 = math.floor(38*SCALE)
 
 -- ========== FPS DEVOURER ==========
+
 local FPSDevourer = {}
 do
     FPSDevourer.running = false
@@ -60,7 +61,6 @@ do
         local c = player.Character
         local b = player:FindFirstChild("Backpack")
         if not c or not b then return false end
-        -- only move tool if not already equipped
         if not isEquipped(name) then
             local t = b:FindFirstChild(name)
             if t then
@@ -83,15 +83,29 @@ do
         return false
     end
 
+    -- Auto-lock Bat: re-equip if unequipped manually
+    local function autoLockBat()
+        task.spawn(function()
+            while FPSDevourer.running and not FPSDevourer._stop do
+                if not isEquipped(BAT_NAME) then
+                    equipTool(BAT_NAME)
+                end
+                task.wait(0.1) -- check 10 times per second
+            end
+        end)
+    end
+
     function FPSDevourer:Start()
         if FPSDevourer.running then return end
         FPSDevourer.running = true
         FPSDevourer._stop = false
+
+        -- lock Bat in place
+        autoLockBat()
+
+        -- devourer loop
         task.spawn(function()
             while FPSDevourer.running and not FPSDevourer._stop do
-                -- only equip Bat if it’s not equipped
-                equipTool(BAT_NAME)
-                task.wait(0.035)
                 equipTool(ITEM_NAME)
                 task.wait(0.035)
                 unequipTool(ITEM_NAME)
@@ -112,26 +126,6 @@ do
         FPSDevourer._stop = true
     end)
 end
-
-
--- Remove antigo painel
-local old = playerGui:FindFirstChild("AkunBitchDevourerPanel")
-if old then old:Destroy() end
-
--- ========== GUI ==========
-local gui = Instance.new("ScreenGui")
-gui.Name = "AkunBitchDevourerPanel"
-gui.ResetOnSpawn = false
-gui.Parent = playerGui
-
-local main = Instance.new("Frame", gui)
-main.Name = "MainPanel"
-main.Size = UDim2.new(0, PANEL_WIDTH, 0, PANEL_HEIGHT)
-main.Position = UDim2.new(1, -PANEL_WIDTH-10, 0, 10)
-main.BackgroundColor3 = Color3.fromRGB(13,13,13)
-main.BorderSizePixel = 0
-main.Active = true
-Instance.new("UICorner", main).CornerRadius = UDim.new(0, PANEL_RADIUS)
 
 -- Drag com Tween
 do
