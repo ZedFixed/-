@@ -1,17 +1,11 @@
---[[
-    AKUNBITCH DEVOURER v2.1 (SpeedBoost fix)
-    + FPS Devourer (spams Tung Bat)
-    + Speed Boost (toggle WalkSpeed) — fixed & robust
-    Smaller + smoother UI, draggable (PC/mobile), top-right corner
-    By LennonTheGoat (patched)
-]]
 
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
 
--- ========== REMOVE ACESSÓRIOS ==========
+-- ========== REMOVE ALL ACCESSORIES ==========
 local function removeAllAccessoriesFromCharacter()
     local character = player.Character
     if not character then return end
@@ -35,61 +29,70 @@ if player.Character then
     task.defer(removeAllAccessoriesFromCharacter)
 end
 
--- ====== DIMENSIONAMENTO (60%) =======
-local SCALE = 0.6
-local PANEL_WIDTH, PANEL_HEIGHT = math.floor(200*SCALE), math.floor(100*SCALE)
-local PANEL_RADIUS = math.floor(14*SCALE)
-local TITLE_HEIGHT = math.floor(28*SCALE)
-local BTN_WIDTH = math.floor(0.9*PANEL_WIDTH)
-local BTN_HEIGHT = math.floor(30*SCALE)
-local BTN_RADIUS = math.floor(10*SCALE)
-local BTN_FONT_SIZE = math.floor(16*SCALE)
-local TITLE_FONT_SIZE = math.floor(18*SCALE)
-local ICON_SIZE = math.floor(14*SCALE)
-local BTN_ICON_PAD = math.floor(6*SCALE)
-local BTN_Y0 = math.floor(35*SCALE)
-local BTN_SPACING = math.floor(32*SCALE)
+-- ====== DIMENSIONAMENTO (70%) =======
+local SCALE = 0.7
+local PANEL_WIDTH, PANEL_HEIGHT = math.floor(212*SCALE), math.floor(90*SCALE)
+local PANEL_RADIUS = math.floor(13*SCALE)
+local TITLE_HEIGHT = math.floor(32*SCALE)
+local BTN_WIDTH = math.floor(0.89*PANEL_WIDTH)
+local BTN_HEIGHT = math.floor(34*SCALE)
+local BTN_RADIUS = math.floor(8*SCALE)
+local BTN_FONT_SIZE = math.floor(17*SCALE)
+local TITLE_FONT_SIZE = math.floor(19*SCALE)
+local ICON_SIZE = math.floor(16*SCALE)
+local BTN_ICON_PAD = math.floor(8*SCALE)
+local BTN_Y0 = math.floor(38*SCALE)
 
 -- ========== FPS DEVOURER ==========
 local FPSDevourer = {}
 do
     FPSDevourer.running = false
-    local TOOL_NAME = "Tung Bat"
-
-    local function equipTungBat()
-        local character = player.Character
-        local backpack = player:FindFirstChild("Backpack")
-        if not character or not backpack then return false end
-        local tool = backpack:FindFirstChild(TOOL_NAME)
-        if tool then tool.Parent = character return true end
+    local TOOL_NAME = "Bat"
+    local function equipBat()
+        local c = player.Character
+        local b = player:FindFirstChild("Backpack")
+        if not c or not b then return false end
+        local t = b:FindFirstChild(TOOL_NAME)
+        if t then t.Parent = c return true end
         return false
     end
-    local function unequipTungBat()
-        local character = player.Character
-        local backpack = player:FindFirstChild("Backpack")
-        if not character or not backpack then return false end
-        local tool = character:FindFirstChild(TOOL_NAME)
-        if tool then tool.Parent = backpack return true end
+    FPSDevourer.running = false
+    local TOOL_NAME = "Medusa's Head"
+    local function equipItem()
+        local c = player.Character
+        local b = player:FindFirstChild("Backpack")
+        if not c or not b then return false end
+        local t = b:FindFirstChild(TOOL_NAME)
+        if t then t.Parent = c return true end
         return false
     end
-
+    local function unequipItem()
+        local c = player.Character
+        local b = player:FindFirstChild("Backpack")
+        if not c or not b then return false end
+        local t = c:FindFirstChild(TOOL_NAME)
+        if t then t.Parent = b return true end
+        return false
+    end
     function FPSDevourer:Start()
         if FPSDevourer.running then return end
         FPSDevourer.running = true
         FPSDevourer._stop = false
         task.spawn(function()
             while FPSDevourer.running and not FPSDevourer._stop do
-                equipTungBat()
+                equipBat()
                 task.wait(0.035)
-                unequipTungBat()
+                equipItem()
                 task.wait(0.035)
+                unequipItem()
+                task.wait(0.50)
             end
         end)
     end
     function FPSDevourer:Stop()
         FPSDevourer.running = false
         FPSDevourer._stop = true
-        unequipTungBat()
+        unequip()
     end
     player.CharacterAdded:Connect(function()
         FPSDevourer.running = false
@@ -97,83 +100,11 @@ do
     end)
 end
 
--- ========== SPEED BOOST (fixed & robust) ==========
-local SpeedBoost = {}
-do
-    SpeedBoost.on = false
-    SpeedBoost.defaultSpeed = nil      -- will store player's original speed when we can read it
-    SpeedBoost.boostSpeed = 32         -- change this to desired boost
-
-    local function applyToHumanoid(humanoid)
-        if not humanoid then return end
-        -- capture default only the first time we see a humanoid
-        if SpeedBoost.defaultSpeed == nil then
-            SpeedBoost.defaultSpeed = humanoid.WalkSpeed or 16
-        end
-        if SpeedBoost.on then
-            -- set boosted speed
-            pcall(function() humanoid.WalkSpeed = SpeedBoost.boostSpeed end)
-        else
-            -- restore default speed
-            local restore = SpeedBoost.defaultSpeed or 16
-            pcall(function() humanoid.WalkSpeed = restore end)
-        end
-    end
-
-    function SpeedBoost:Start()
-        SpeedBoost.on = true
-        -- apply immediately if we have a humanoid
-        local char = player.Character
-        if char then
-            local humanoid = char:FindFirstChildWhichIsA("Humanoid") or char:FindFirstChild("Humanoid")
-            if humanoid then
-                applyToHumanoid(humanoid)
-                return
-            end
-        end
-        -- if no humanoid now, we won't block — CharacterAdded handler will apply when available
-    end
-
-    function SpeedBoost:Stop()
-        SpeedBoost.on = false
-        -- restore on current humanoid if present
-        local char = player.Character
-        if char then
-            local humanoid = char:FindFirstChildWhichIsA("Humanoid") or char:FindFirstChild("Humanoid")
-            if humanoid then
-                applyToHumanoid(humanoid)
-            end
-        end
-    end
-
-    -- ensure when a new character spawns we capture its default WalkSpeed (if not captured)
-    player.CharacterAdded:Connect(function(char)
-        task.wait(0.1)
-        local humanoid = char:WaitForChild("Humanoid", 5) -- safe wait up to 5s
-        if humanoid then
-            -- store default if unknown, then apply current state (on/off)
-            if SpeedBoost.defaultSpeed == nil then
-                SpeedBoost.defaultSpeed = humanoid.WalkSpeed or 16
-            end
-            applyToHumanoid(humanoid)
-        end
-    end)
-
-    -- if character already exists when script runs, apply immediately
-    if player.Character and player.Character:FindFirstChildWhichIsA("Humanoid") then
-        local humanoid = player.Character:FindFirstChildWhichIsA("Humanoid")
-        SpeedBoost.defaultSpeed = SpeedBoost.defaultSpeed or (humanoid and humanoid.WalkSpeed) or 16
-        if SpeedBoost.on then
-            pcall(function() humanoid.WalkSpeed = SpeedBoost.boostSpeed end)
-        end
-    end
-end
-
 -- Remove antigo painel
 local old = playerGui:FindFirstChild("AkunBitchDevourerPanel")
 if old then old:Destroy() end
 
--- ========== PAINEL UI ==========
+-- ========== GUI ==========
 local gui = Instance.new("ScreenGui")
 gui.Name = "AkunBitchDevourerPanel"
 gui.ResetOnSpawn = false
@@ -182,26 +113,13 @@ gui.Parent = playerGui
 local main = Instance.new("Frame", gui)
 main.Name = "MainPanel"
 main.Size = UDim2.new(0, PANEL_WIDTH, 0, PANEL_HEIGHT)
-main.Position = UDim2.new(1, -PANEL_WIDTH-12, 0, 12)
-main.BackgroundColor3 = Color3.fromRGB(20,20,20)
+main.Position = UDim2.new(1, -PANEL_WIDTH-10, 0, 10)
+main.BackgroundColor3 = Color3.fromRGB(13,13,13)
 main.BorderSizePixel = 0
 main.Active = true
-main.ClipsDescendants = true
 Instance.new("UICorner", main).CornerRadius = UDim.new(0, PANEL_RADIUS)
 
--- sombra fake
-local shadow = Instance.new("ImageLabel", main)
-shadow.ZIndex = -1
-shadow.Position = UDim2.new(0, -15, 0, -15)
-shadow.Size = UDim2.new(1, 30, 1, 30)
-shadow.BackgroundTransparency = 1
-shadow.Image = "rbxassetid://1316045217"
-shadow.ImageColor3 = Color3.fromRGB(0,0,0)
-shadow.ImageTransparency = 0.6
-shadow.ScaleType = Enum.ScaleType.Slice
-shadow.SliceCenter = Rect.new(10,10,118,118)
-
--- drag
+-- Drag com Tween
 do
     local dragging, dragInput, dragStart, startPos
     main.InputBegan:Connect(function(input)
@@ -222,21 +140,47 @@ do
     UserInputService.InputChanged:Connect(function(input)
         if dragging and input == dragInput then
             local delta = input.Position - dragStart
-            main.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            local goal = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X,
+                                   startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+            TweenService:Create(main, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {Position = goal}):Play()
         end
     end)
 end
 
--- título
+-- Title
 local title = Instance.new("TextLabel", main)
+title.Name = "Title"
 title.Size = UDim2.new(1, 0, 0, TITLE_HEIGHT)
+title.Position = UDim2.new(0,0,0,0)
 title.Text = "AKUNBITCH DEVOURER"
-title.Font = Enum.Font.GothamBold
+title.Font = Enum.Font.GothamBlack
 title.TextSize = TITLE_FONT_SIZE
 title.BackgroundTransparency = 1
 title.TextColor3 = Color3.fromRGB(255,255,255)
+title.TextStrokeTransparency = 0.08
+title.TextStrokeColor3 = Color3.fromRGB(220,220,220)
 
--- botão helper
+-- Ping Monitor (left of title)
+local pingLabel = Instance.new("TextLabel", main)
+pingLabel.Size = UDim2.new(0, 60, 0, TITLE_HEIGHT)
+pingLabel.Position = UDim2.new(0, 6, 0, 0)
+pingLabel.BackgroundTransparency = 1
+pingLabel.Font = Enum.Font.GothamBold
+pingLabel.TextSize = math.floor(15*SCALE)
+pingLabel.TextColor3 = Color3.fromRGB(180,255,180)
+pingLabel.TextXAlignment = Enum.TextXAlignment.Left
+pingLabel.Text = "Ping: --"
+
+task.spawn(function()
+    while task.wait(0.5) do
+        local stats = game:GetService("Stats").Network.ServerStatsItem["Data Ping"]
+        if stats then
+            pingLabel.Text = "Ping: "..math.floor(stats:GetValue()).."ms"
+        end
+    end
+end)
+
+-- Circle Icon
 local function createCircleIcon(parent, y, on)
     local icon = Instance.new("Frame", parent)
     icon.Size = UDim2.new(0, ICON_SIZE, 0, ICON_SIZE)
@@ -250,11 +194,12 @@ local function createCircleIcon(parent, y, on)
     return icon, circle
 end
 
+-- Toggle Btn
 local function makeToggleBtn(parent, label, y, callback)
     local btn = Instance.new("TextButton", parent)
     btn.Size = UDim2.new(0, BTN_WIDTH, 0, BTN_HEIGHT)
     btn.Position = UDim2.new(0, math.floor((PANEL_WIDTH-BTN_WIDTH)/2), 0, y)
-    btn.BackgroundColor3 = Color3.fromRGB(30,30,30)
+    btn.BackgroundColor3 = Color3.fromRGB(28,28,28)
     btn.Text = label
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = BTN_FONT_SIZE
@@ -268,8 +213,12 @@ local function makeToggleBtn(parent, label, y, callback)
     btn.AutoButtonColor = false
     local state = false
     local function updateVisual()
-        circle.ImageColor3 = (state and Color3.fromRGB(50,255,60)) or Color3.fromRGB(255,40,40)
-        btn.BackgroundColor3 = state and Color3.fromRGB(40,40,40) or Color3.fromRGB(30,30,30)
+        TweenService:Create(circle, TweenInfo.new(0.15), {
+            ImageColor3 = (state and Color3.fromRGB(50,255,60)) or Color3.fromRGB(255,40,40)
+        }):Play()
+        TweenService:Create(btn, TweenInfo.new(0.15), {
+            BackgroundColor3 = state and Color3.fromRGB(38,38,38) or Color3.fromRGB(28,28,28)
+        }):Play()
     end
     btn.MouseButton1Click:Connect(function()
         state = not state
@@ -291,20 +240,13 @@ local function makeToggleBtn(parent, label, y, callback)
     end
 end
 
--- botão 1: FPS Devourer
-local btnFPSDevourer, setFPSDevourerState = makeToggleBtn(main, "FPS Devourer", BTN_Y0, function(on)
+local btnFPSDevourer, setFPSDevourerState = makeToggleBtn(main, "AkunBitch Devourer", BTN_Y0, function(on)
     if on then FPSDevourer:Start() else FPSDevourer:Stop() end
 end)
 
--- botão 2: Speed Boost
-local btnSpeed, setSpeedState = makeToggleBtn(main, "Speed Boost", BTN_Y0+BTN_SPACING, function(on)
-    if on then SpeedBoost:Start() else SpeedBoost:Stop() end
-end)
-
--- reset ao respawn (turn toggles OFF visually and ensure accessories removed)
+-- Reset toggle on respawn
 player.CharacterAdded:Connect(function()
     setFPSDevourerState(false)
-    setSpeedState(false)
     task.wait(0.2)
     removeAllAccessoriesFromCharacter()
 end)
