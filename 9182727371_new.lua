@@ -89,9 +89,9 @@ do
             while FPSDevourer.running and not FPSDevourer._stop do
                 equipTungBat()
                 task.wait(0.035)
-                equipMedusa'sHead()
+                equipMedusaHead()
                 task.wait(0.035)
-                unequipMedusa'sHead()
+                unequipMedusaHead()
                 task.wait(0.50)
                 
             end
