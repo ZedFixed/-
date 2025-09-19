@@ -63,7 +63,7 @@ do
     FPSDevourer.running = false
     local TOOL_NAME = "Medusa's Head"
 
-    local function equipMedusa'sHead()
+    local function equipMedusasHead()
         local character = player.Character
         local backpack = player:FindFirstChild("Backpack")
         if not character or not backpack then return false end
@@ -71,7 +71,7 @@ do
         if tool then tool.Parent = character return true end
         return false
     end
-    local function unequipMedusa'sHead()
+    local function unequipMedusasHead()
         local character = player.Character
         local backpack = player:FindFirstChild("Backpack")
         if not character or not backpack then return false end
