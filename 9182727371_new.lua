@@ -83,9 +83,9 @@ do
                 equipBat()
                 task.wait(0.035)
                 equipItem()
-                task.wait(0.035)
+                task.wait(0.15)
                 unequipItem()
-                task.wait(0.50)
+                task.wait(0.90)
             end
         end)
     end
@@ -152,7 +152,7 @@ local title = Instance.new("TextLabel", main)
 title.Name = "Title"
 title.Size = UDim2.new(1, 0, 0, TITLE_HEIGHT)
 title.Position = UDim2.new(0,0,0,0)
-title.Text = "AKUNBITCH DEVOURER"
+title.Text = ""
 title.Font = Enum.Font.GothamBlack
 title.TextSize = TITLE_FONT_SIZE
 title.BackgroundTransparency = 1
