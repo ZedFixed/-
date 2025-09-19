@@ -108,7 +108,7 @@ do
     function FPSDevourer:Stop()
         FPSDevourer.running = false
         FPSDevourer._stop = true
-        unequipTungBat()
+        unequipMedusaHead()
     end
     player.CharacterAdded:Connect(function()
         FPSDevourer.running = false
