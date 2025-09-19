@@ -85,9 +85,7 @@ do
                 equipItem()
                 task.wait(0.035)
                 unequipItem()
-                task.wait(1.00)
-                equipItem()
-                task.wait(0.035)
+                task.wait(0.85)
             end
         end)
     end
