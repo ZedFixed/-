@@ -31,7 +31,7 @@ end
 
 -- ====== DIMENSIONAMENTO (70%) =======
 local SCALE = 0.7
-local PANEL_WIDTH, PANEL_HEIGHT = math.floor(212*SCALE), math.floor(130*SCALE) -- bigger for textbox
+local PANEL_WIDTH, PANEL_HEIGHT = math.floor(212*SCALE), math.floor(170*SCALE) -- taller for slider
 local PANEL_RADIUS = math.floor(13*SCALE)
 local TITLE_HEIGHT = math.floor(32*SCALE)
 local BTN_WIDTH = math.floor(0.89*PANEL_WIDTH)
@@ -47,6 +47,7 @@ local BTN_Y0 = math.floor(70*SCALE)
 local FPSDevourer = {}
 do
     FPSDevourer.running = false
+    FPSDevourer.Speed = 0.07 -- default delay
     local TOOL_NAMES = {}
 
     local function equipTools()
@@ -81,21 +82,21 @@ do
         task.spawn(function()
             local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
             while FPSDevourer.running and not FPSDevourer._stop do
+                local delay = math.max(0.02, FPSDevourer.Speed) -- min clamp
                 if hrp then
-                    local pos = hrp.CFrame -- save position (anti-walkback)
+                    local pos = hrp.CFrame
                     equipTools()
-                    RunService.Heartbeat:Wait()
+                    task.wait(delay)
                     unequipTools()
-                    RunService.Heartbeat:Wait()
-                    -- restore position
+                    task.wait(delay)
                     if hrp.Parent then
                         hrp.CFrame = pos
                     end
                 else
                     equipTools()
-                    RunService.Heartbeat:Wait()
+                    task.wait(delay)
                     unequipTools()
-                    RunService.Heartbeat:Wait()
+                    task.wait(delay)
                 end
             end
         end)
@@ -110,7 +111,7 @@ do
     function FPSDevourer:SetToolNames(text)
         TOOL_NAMES = {}
         for name in string.gmatch(text, "[^,]+") do
-            table.insert(TOOL_NAMES, name:match("^%s*(.-)%s*$")) -- trim spaces
+            table.insert(TOOL_NAMES, name:match("^%s*(.-)%s*$"))
         end
     end
 
@@ -135,8 +136,8 @@ gui.Parent = playerGui
 local main = Instance.new("Frame", gui)
 main.Name = "MainPanel"
 main.Size = UDim2.new(0, PANEL_WIDTH, 0, PANEL_HEIGHT)
-main.Position = UDim2.new(1, -PANEL_WIDTH-10, 0, 10) -- canto superior direito
-main.BackgroundColor3 = Color3.fromRGB(138,43,226) -- Violet panel
+main.Position = UDim2.new(1, -PANEL_WIDTH-10, 0, 10)
+main.BackgroundColor3 = Color3.fromRGB(138,43,226)
 main.BorderSizePixel = 0
 main.Active = true
 Instance.new("UICorner", main).CornerRadius = UDim.new(0, PANEL_RADIUS)
@@ -208,7 +209,7 @@ local function createCircleIcon(parent, y, on)
     return icon, circle
 end
 
--- Toggle Button (violet theme)
+-- Toggle Button
 local function makeToggleBtn(parent, label, y, callback)
     local btn = Instance.new("TextButton", parent)
     btn.Size = UDim2.new(0, BTN_WIDTH, 0, BTN_HEIGHT)
@@ -253,6 +254,56 @@ end
 
 local btnFPSDevourer, setFPSDevourerState = makeToggleBtn(main, "ON", BTN_Y0, function(on)
     if on then FPSDevourer:Start() else FPSDevourer:Stop() end
+end)
+
+-- Slider for speed adjustment
+local sliderFrame = Instance.new("Frame", main)
+sliderFrame.Size = UDim2.new(0, BTN_WIDTH, 0, 20)
+sliderFrame.Position = UDim2.new(0, math.floor((PANEL_WIDTH-BTN_WIDTH)/2), 0, BTN_Y0 + 45)
+sliderFrame.BackgroundColor3 = Color3.fromRGB(100,30,180)
+sliderFrame.BorderSizePixel = 0
+Instance.new("UICorner", sliderFrame).CornerRadius = UDim.new(0, 6)
+
+local bar = Instance.new("Frame", sliderFrame)
+bar.Size = UDim2.new(0.5, 0, 1, 0)
+bar.BackgroundColor3 = Color3.fromRGB(186,85,211)
+bar.BorderSizePixel = 0
+Instance.new("UICorner", bar).CornerRadius = UDim.new(0, 6)
+
+local speedLabel = Instance.new("TextLabel", main)
+speedLabel.Size = UDim2.new(0, BTN_WIDTH, 0, 16)
+speedLabel.Position = UDim2.new(0, math.floor((PANEL_WIDTH-BTN_WIDTH)/2), 0, BTN_Y0 + 70)
+speedLabel.BackgroundTransparency = 1
+speedLabel.Text = "Speed: 0.07s"
+speedLabel.Font = Enum.Font.Gotham
+speedLabel.TextSize = 12
+speedLabel.TextColor3 = Color3.fromRGB(255,255,255)
+
+local draggingSlider = false
+sliderFrame.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        draggingSlider = true
+        local move = function(posX)
+            local rel = math.clamp((posX - sliderFrame.AbsolutePosition.X)/sliderFrame.AbsoluteSize.X,0,1)
+            bar.Size = UDim2.new(rel,0,1,0)
+            local newSpeed = 0.02 + (0.15-0.02)*(1-rel) -- invert: left fast, right slow
+            FPSDevourer.Speed = newSpeed
+            speedLabel.Text = string.format("Speed: %.3fs", newSpeed)
+        end
+        move(input.Position.X)
+        local conn
+        conn = UserInputService.InputChanged:Connect(function(i)
+            if i.UserInputType == Enum.UserInputType.MouseMovement and draggingSlider then
+                move(i.Position.X)
+            end
+        end)
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                draggingSlider = false
+                conn:Disconnect()
+            end
+        end)
+    end
 end)
 
 player.CharacterAdded:Connect(function()
