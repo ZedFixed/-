@@ -47,58 +47,72 @@ local BTN_Y0 = math.floor(38*SCALE)
 local FPSDevourer = {}
 do
     FPSDevourer.running = false
-    local TOOL_NAME = "Bat"
-    local function equipBat()
+    local BAT_NAME = "Bat"
+    local ITEM_NAME = "Medusa's Head"
+
+    local function isEquipped(name)
+        local c = player.Character
+        if not c then return false end
+        return c:FindFirstChild(name) ~= nil
+    end
+
+    local function equipTool(name)
         local c = player.Character
         local b = player:FindFirstChild("Backpack")
         if not c or not b then return false end
-        local t = b:FindFirstChild(TOOL_NAME)
-        if t then t.Parent = c return true end
+        -- only move tool if not already equipped
+        if not isEquipped(name) then
+            local t = b:FindFirstChild(name)
+            if t then
+                t.Parent = c
+                return true
+            end
+        end
         return false
     end
-    FPSDevourer.running = false
-    local TOOL_NAME = "Medusa's Head"
-    local function equipItem()
+
+    local function unequipTool(name)
         local c = player.Character
         local b = player:FindFirstChild("Backpack")
         if not c or not b then return false end
-        local t = b:FindFirstChild(TOOL_NAME)
-        if t then t.Parent = c return true end
+        local t = c:FindFirstChild(name)
+        if t then
+            t.Parent = b
+            return true
+        end
         return false
     end
-    local function unequipItem()
-        local c = player.Character
-        local b = player:FindFirstChild("Backpack")
-        if not c or not b then return false end
-        local t = c:FindFirstChild(TOOL_NAME)
-        if t then t.Parent = b return true end
-        return false
-    end
+
     function FPSDevourer:Start()
         if FPSDevourer.running then return end
         FPSDevourer.running = true
         FPSDevourer._stop = false
         task.spawn(function()
             while FPSDevourer.running and not FPSDevourer._stop do
-                equipBat()
+                -- only equip Bat if it’s not equipped
+                equipTool(BAT_NAME)
                 task.wait(0.035)
-                equipItem()
+                equipTool(ITEM_NAME)
                 task.wait(0.035)
-                unequipItem()
+                unequipTool(ITEM_NAME)
                 task.wait(0.85)
             end
         end)
     end
+
     function FPSDevourer:Stop()
         FPSDevourer.running = false
         FPSDevourer._stop = true
-        unequip()
+        unequipTool(ITEM_NAME)
+        unequipTool(BAT_NAME)
     end
+
     player.CharacterAdded:Connect(function()
         FPSDevourer.running = false
         FPSDevourer._stop = true
     end)
 end
+
 
 -- Remove antigo painel
 local old = playerGui:FindFirstChild("AkunBitchDevourerPanel")
