@@ -203,38 +203,3 @@ player.CharacterAdded:Connect(function()
     task.wait(0.2)
     removeAllAccessoriesFromCharacter()
 end)
-12
-speedLabel.TextColor3 = Color3.fromRGB(255,255,255)
-
-local draggingSlider = false
-sliderFrame.InputBegan:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 then
-        draggingSlider = true
-        local move = function(posX)
-            local rel = math.clamp((posX - sliderFrame.AbsolutePosition.X)/sliderFrame.AbsoluteSize.X,0,1)
-            bar.Size = UDim2.new(rel,0,1,0)
-            local newSpeed = 0.02 + (0.15-0.02)*(1-rel) -- invert: left fast, right slow
-            FPSDevourer.Speed = newSpeed
-            speedLabel.Text = string.format("Speed: %.3fs", newSpeed)
-        end
-        move(input.Position.X)
-        local conn
-        conn = UserInputService.InputChanged:Connect(function(i)
-            if i.UserInputType == Enum.UserInputType.MouseMovement and draggingSlider then
-                move(i.Position.X)
-            end
-        end)
-        input.Changed:Connect(function()
-            if input.UserInputState == Enum.UserInputState.End then
-                draggingSlider = false
-                conn:Disconnect()
-            end
-        end)
-    end
-end)
-
-player.CharacterAdded:Connect(function()
-    setFPSDevourerState(false)
-    task.wait(0.2)
-    removeAllAccessoriesFromCharacter()
-end)
