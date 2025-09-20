@@ -76,9 +76,9 @@ do
                 unequipTungBat()
                 task.wait(0.50)
                 equipTungBat()
-                task.wait(0.08)
+                task.wait(0.035)
                 unequipTungBat()
-                task.wait(0.08)-- 0.035 + 0.035 = 0.07s
+                task.wait(0.035)-- 0.035 + 0.035 = 0.07s
             end
         end)
     end
