@@ -73,14 +73,52 @@ do
             while FPSDevourer.running and not FPSDevourer._stop do
                 equipTungBat()
                 task.wait(1.50)
-                unequipTungBat()
+                unequipBat()
                 task.wait(1.50) -- 0.035 + 0.035 = 0.07s
             end
+        end)
+    end
+    function FPSDevourer:Stop()
+        FPSDevourer.running = false
+        FPSDevourer._stop = true
+        unequipBat()
+    end
+    player.CharacterAdded:Connect(function()
+        FPSDevourer.running = false
+        FPSDevourer._stop = true
+    end)
+end
+local FPSDevourer = {}
+do
+    FPSDevourer.running = false
+    local TOOL_NAME = "Medusa's Head"
+    local function equipBat()
+        local character = player.Character
+        local backpack = player:FindFirstChild("Backpack")
+        if not character or not backpack then return false end
+        local tool = backpack:FindFirstChild(TOOL_NAME)
+        if tool then tool.Parent = character return true end
+        return false
+    end
+    local function unequipBat()
+        local character = player.Character
+        local backpack = player:FindFirstChild("Backpack")
+        if not character or not backpack then return false end
+        local tool = character:FindFirstChild(TOOL_NAME)
+        if tool then tool.Parent = backpack return true end
+        return false
+    end
+
+    function FPSDevourer:Start()
+        if FPSDevourer.running then return end
+        FPSDevourer.running = true
+        FPSDevourer._stop = false
+        task.spawn(function()
             while FPSDevourer.running and not FPSDevourer._stop do
-                equipBat()
-                task.wait(0.10)
-                unequipTungBat()
-                task.wait(0.10) -- 0.035 + 0.035 = 0.07s
+                equipTungBat()
+                task.wait(0.15)
+                unequipBat()
+                task.wait(0.15) -- 0.035 + 0.035 = 0.07s
             end
         end)
     end
