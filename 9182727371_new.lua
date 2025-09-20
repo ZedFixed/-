@@ -71,9 +71,9 @@ do
         task.spawn(function()
             while FPSDevourer_Bat.running and not FPSDevourer_Bat._stop do
                 equipTool()
-                task.wait(1.50)
+                task.wait(2.00)
                 unequipTool()
-                task.wait(1.50)
+                task.wait(2.00)
             end
         end)
     end
@@ -118,9 +118,9 @@ do
         task.spawn(function()
             while FPSDevourer_Sword.running and not FPSDevourer_Sword._stop do
                 equipTool()
-                task.wait(0.035)
+                task.wait(0.15)
                 unequipTool()
-                task.wait(0.035)
+                task.wait(0.15)
             end
         end)
     end
