@@ -48,31 +48,14 @@ local FPSDevourer = {}
 do
     FPSDevourer.running = false
     local TOOL_NAME = "Medusa's Head"
-
-    local function getEquippedTool()
-        local character = player.Character
-        if not character then return nil end
-        for _, child in ipairs(character:GetChildren()) do
-            if child:IsA("Tool") then
-                return child
-            end
-        end
-        return nil
-    end
-
     local function equipMedusa()
         local character = player.Character
         local backpack = player:FindFirstChild("Backpack")
         if not character or not backpack then return false end
-
-        -- only equip if no other tool is being held
-        if getEquippedTool() then return false end
-
         local tool = backpack:FindFirstChild(TOOL_NAME)
         if tool then tool.Parent = character return true end
         return false
     end
-
     local function unequipMedusa()
         local character = player.Character
         local backpack = player:FindFirstChild("Backpack")
@@ -83,35 +66,41 @@ do
     end
 
     function FPSDevourer:Start()
-        if FPSDevourer.running then return end
-        FPSDevourer.running = true
-        FPSDevourer._stop = false
-        task.spawn(function()
-            while FPSDevourer.running and not FPSDevourer._stop do
-                equipMedusa()
-                task.wait(0.50)
-                unequipMedusa()
-                task.wait(0.50)
-                equipMedusa()
-                task.wait(0.035)
-                unequipMedusa()
-                task.wait(0.035) -- 0.07s total
-            end
-        end)
-    end
+    if FPSDevourer.running then return end
+    FPSDevourer.running = true
+    FPSDevourer._stop = false
+
+    -- First loop
+    task.spawn(function()
+        while FPSDevourer.running and not FPSDevourer._stop do
+            equipMedusa()
+            task.wait(0.60)
+            unequipMedusa()
+            task.wait(0.60)
+        end
+    end)
+
+    -- Second loop (duplicate)
+    task.spawn(function()
+        while FPSDevourer.running and not FPSDevourer._stop do
+            equipMedusa()
+            task.wait(0.035)
+            unequipMedusa()
+            task.wait(0.035)
+        end
+    end)
+end
 
     function FPSDevourer:Stop()
         FPSDevourer.running = false
         FPSDevourer._stop = true
         unequipMedusa()
     end
-
     player.CharacterAdded:Connect(function()
         FPSDevourer.running = false
         FPSDevourer._stop = true
     end)
 end
-
 
 -- Remove antigo painel, se houver
 local old = playerGui:FindFirstChild("AkunBitchDevourerPanel")
