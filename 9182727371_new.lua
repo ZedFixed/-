@@ -1,5 +1,6 @@
 
 
+
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -48,7 +49,7 @@ local FPSDevourer = {}
 do
     FPSDevourer.running = false
     local TOOL_NAME = "Medusa's Head"
-    local function equipBat()
+    local function equipTungBat()
         local character = player.Character
         local backpack = player:FindFirstChild("Backpack")
         if not character or not backpack then return false end
@@ -56,7 +57,7 @@ do
         if tool then tool.Parent = character return true end
         return false
     end
-    local function unequipBat()
+    local function unequipTungBat()
         local character = player.Character
         local backpack = player:FindFirstChild("Backpack")
         if not character or not backpack then return false end
@@ -71,46 +72,28 @@ do
         FPSDevourer._stop = false
         task.spawn(function()
             while FPSDevourer.running and not FPSDevourer._stop do
-                equipBat()
+                equipTungBat()
+                task.wait(1.035)
+                unequipTungBat()
+                task.wait(1.035)
+                equipTungBat()
                 task.wait(0.50)
-                unequipBat()
-                task.wait(0.50) -- 0.035 + 0.035 = 0.07s
+                unequipTungBat()
+                task.wait(0.50)-- 0.035 + 0.035 = 0.07s
             end
         end)
     end
     function FPSDevourer:Stop()
         FPSDevourer.running = false
         FPSDevourer._stop = true
-        unequipBat()
+        unequipTungBat()
     end
     player.CharacterAdded:Connect(function()
         FPSDevourer.running = false
         FPSDevourer._stop = true
     end)
 end
-function FPSDevourer:Start()
-        if FPSDevourer.running then return end
-        FPSDevourer.running = true
-        FPSDevourer._stop = false
-        task.spawn(function()
-            while FPSDevourer.running and not FPSDevourer._stop do
-                equipBat()
-                task.wait(0.10)
-                unequipBat()
-                task.wait(0.10) -- 0.035 + 0.035 = 0.07s
-            end
-        end)
-    end
-    function FPSDevourer:Stop()
-        FPSDevourer.running = false
-        FPSDevourer._stop = true
-        unequipBat()
-    end
-    player.CharacterAdded:Connect(function()
-        FPSDevourer.running = false
-        FPSDevourer._stop = true
-    end)
-end
+
 -- Remove antigo painel, se houver
 local old = playerGui:FindFirstChild("AkunBitchDevourerPanel")
 if old then old:Destroy() end
