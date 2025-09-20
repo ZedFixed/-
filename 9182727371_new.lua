@@ -48,15 +48,32 @@ local FPSDevourer = {}
 do
     FPSDevourer.running = false
     local TOOL_NAME = "Medusa's Head"
-    local function equipTungBat()
+
+    local function getEquippedTool()
+        local character = player.Character
+        if not character then return nil end
+        for _, child in ipairs(character:GetChildren()) do
+            if child:IsA("Tool") then
+                return child
+            end
+        end
+        return nil
+    end
+
+    local function equipMedusa()
         local character = player.Character
         local backpack = player:FindFirstChild("Backpack")
         if not character or not backpack then return false end
+
+        -- only equip if no other tool is being held
+        if getEquippedTool() then return false end
+
         local tool = backpack:FindFirstChild(TOOL_NAME)
         if tool then tool.Parent = character return true end
         return false
     end
-    local function unequipTungBat()
+
+    local function unequipMedusa()
         local character = player.Character
         local backpack = player:FindFirstChild("Backpack")
         if not character or not backpack then return false end
@@ -71,27 +88,30 @@ do
         FPSDevourer._stop = false
         task.spawn(function()
             while FPSDevourer.running and not FPSDevourer._stop do
-                equipTungBat()
+                equipMedusa()
                 task.wait(0.50)
-                unequipTungBat()
+                unequipMedusa()
                 task.wait(0.50)
-                equipTungBat()
+                equipMedusa()
                 task.wait(0.035)
-                unequipTungBat()
-                task.wait(0.035)-- 0.035 + 0.035 = 0.07s
+                unequipMedusa()
+                task.wait(0.035) -- 0.07s total
             end
         end)
     end
+
     function FPSDevourer:Stop()
         FPSDevourer.running = false
         FPSDevourer._stop = true
-        unequipTungBat()
+        unequipMedusa()
     end
+
     player.CharacterAdded:Connect(function()
         FPSDevourer.running = false
         FPSDevourer._stop = true
     end)
 end
+
 
 -- Remove antigo painel, se houver
 local old = playerGui:FindFirstChild("AkunBitchDevourerPanel")
