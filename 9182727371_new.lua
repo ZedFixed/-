@@ -47,27 +47,25 @@ do
     FPSDevourer.running = false
     local TOOL_NAME = "Medusa's Head"
 
-    -- New non-blocking pulse method
+    -- Clone-based non-blocking pulse
     local function pulseTool(toolName)
-        local character = player.Character
         local backpack = player:FindFirstChild("Backpack")
-        if not character or not backpack then return end
+        if not backpack then return end
 
-        local tool = backpack:FindFirstChild(toolName) or character:FindFirstChild(toolName)
-        if not tool then return end
+        local original = backpack:FindFirstChild(toolName)
+        if not original then return end
 
-        if tool.Parent == character then
-            pcall(function()
-                tool:Activate()
-            end)
-        else
-            tool.Parent = character
-            task.wait(0.02)
-            pcall(function()
-                tool:Activate()
-            end)
-            tool.Parent = backpack
-        end
+        -- Clone tool so it doesn’t interfere with equipped bat
+        local ghost = original:Clone()
+        ghost.Parent = player.Character
+
+        task.wait(0.02)
+        pcall(function()
+            ghost:Activate()
+        end)
+
+        task.wait(0.02)
+        ghost:Destroy()
     end
 
     function FPSDevourer:Start()
@@ -97,7 +95,7 @@ end
 local old = playerGui:FindFirstChild("AkunBitchDevourerPanel")
 if old then old:Destroy() end
 
--- ========== PAINEL UI + DRAG MIRANDATWEEN STYLE ==========
+-- ========== PAINEL UI + DRAG ==========
 local gui = Instance.new("ScreenGui")
 gui.Name = "AkunBitchDevourerPanel"
 gui.ResetOnSpawn = false
@@ -106,7 +104,7 @@ gui.Parent = playerGui
 local main = Instance.new("Frame", gui)
 main.Name = "MainPanel"
 main.Size = UDim2.new(0, PANEL_WIDTH, 0, PANEL_HEIGHT)
-main.Position = UDim2.new(1, -PANEL_WIDTH-10, 0, 10) -- CANTO SUPERIOR DIREITO!
+main.Position = UDim2.new(1, -PANEL_WIDTH-10, 0, 10)
 main.BackgroundColor3 = Color3.fromRGB(13,13,13)
 main.BorderSizePixel = 0
 main.Active = true
