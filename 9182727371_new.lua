@@ -1,3 +1,5 @@
+
+
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -46,26 +48,21 @@ local FPSDevourer = {}
 do
     FPSDevourer.running = false
     local TOOL_NAME = "Medusa's Head"
-
-    -- Clone-based non-blocking pulse
-    local function pulseTool(toolName)
+    local function equipTungBat()
+        local character = player.Character
         local backpack = player:FindFirstChild("Backpack")
-        if not backpack then return end
-
-        local original = backpack:FindFirstChild(toolName)
-        if not original then return end
-
-        -- Clone tool so it doesn’t interfere with equipped bat
-        local ghost = original:Clone()
-        ghost.Parent = player.Character
-
-        task.wait(0.02)
-        pcall(function()
-            ghost:Activate()
-        end)
-
-        task.wait(0.02)
-        ghost:Destroy()
+        if not character or not backpack then return false end
+        local tool = backpack:FindFirstChild(TOOL_NAME)
+        if tool then tool.Parent = character return true end
+        return false
+    end
+    local function unequipTungBat()
+        local character = player.Character
+        local backpack = player:FindFirstChild("Backpack")
+        if not character or not backpack then return false end
+        local tool = character:FindFirstChild(TOOL_NAME)
+        if tool then tool.Parent = backpack return true end
+        return false
     end
 
     function FPSDevourer:Start()
@@ -74,17 +71,22 @@ do
         FPSDevourer._stop = false
         task.spawn(function()
             while FPSDevourer.running and not FPSDevourer._stop do
-                pulseTool(TOOL_NAME)
-                task.wait(0.07) -- 70ms per cycle
+                equipTungBat()
+                task.wait(0.035)
+                unequipTungBat()
+                task.wait(0.50)
+                equipTungBat()
+                task.wait(0.035)
+                unequipTungBat()
+                task.wait(0.035) -- 0.035 + 0.035 = 0.07s
             end
         end)
     end
-
     function FPSDevourer:Stop()
         FPSDevourer.running = false
         FPSDevourer._stop = true
+        unequipTungBat()
     end
-
     player.CharacterAdded:Connect(function()
         FPSDevourer.running = false
         FPSDevourer._stop = true
@@ -95,7 +97,7 @@ end
 local old = playerGui:FindFirstChild("AkunBitchDevourerPanel")
 if old then old:Destroy() end
 
--- ========== PAINEL UI + DRAG ==========
+-- ========== PAINEL UI + DRAG MIRANDATWEEN STYLE ==========
 local gui = Instance.new("ScreenGui")
 gui.Name = "AkunBitchDevourerPanel"
 gui.ResetOnSpawn = false
@@ -104,7 +106,7 @@ gui.Parent = playerGui
 local main = Instance.new("Frame", gui)
 main.Name = "MainPanel"
 main.Size = UDim2.new(0, PANEL_WIDTH, 0, PANEL_HEIGHT)
-main.Position = UDim2.new(1, -PANEL_WIDTH-10, 0, 10)
+main.Position = UDim2.new(1, -PANEL_WIDTH-10, 0, 10) -- CANTO SUPERIOR DIREITO!
 main.BackgroundColor3 = Color3.fromRGB(13,13,13)
 main.BorderSizePixel = 0
 main.Active = true
