@@ -1,5 +1,3 @@
-
-
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -48,54 +46,47 @@ local FPSDevourer = {}
 do
     FPSDevourer.running = false
     local TOOL_NAME = "Medusa's Head"
-    local function equipMedusa()
+
+    -- New non-blocking pulse method
+    local function pulseTool(toolName)
         local character = player.Character
         local backpack = player:FindFirstChild("Backpack")
-        if not character or not backpack then return false end
-        local tool = backpack:FindFirstChild(TOOL_NAME)
-        if tool then tool.Parent = character return true end
-        return false
-    end
-    local function unequipMedusa()
-        local character = player.Character
-        local backpack = player:FindFirstChild("Backpack")
-        if not character or not backpack then return false end
-        local tool = character:FindFirstChild(TOOL_NAME)
-        if tool then tool.Parent = backpack return true end
-        return false
+        if not character or not backpack then return end
+
+        local tool = backpack:FindFirstChild(toolName) or character:FindFirstChild(toolName)
+        if not tool then return end
+
+        if tool.Parent == character then
+            pcall(function()
+                tool:Activate()
+            end)
+        else
+            tool.Parent = character
+            task.wait(0.02)
+            pcall(function()
+                tool:Activate()
+            end)
+            tool.Parent = backpack
+        end
     end
 
     function FPSDevourer:Start()
-    if FPSDevourer.running then return end
-    FPSDevourer.running = true
-    FPSDevourer._stop = false
-
-    -- First loop
-    task.spawn(function()
-        while FPSDevourer.running and not FPSDevourer._stop do
-            equipMedusa()
-            task.wait(0.60)
-            unequipMedusa()
-            task.wait(0.60)
-        end
-    end)
-
-    -- Second loop (duplicate)
-    task.spawn(function()
-        while FPSDevourer.running and not FPSDevourer._stop do
-            equipMedusa()
-            task.wait(0.035)
-            unequipMedusa()
-            task.wait(0.035)
-        end
-    end)
-end
+        if FPSDevourer.running then return end
+        FPSDevourer.running = true
+        FPSDevourer._stop = false
+        task.spawn(function()
+            while FPSDevourer.running and not FPSDevourer._stop do
+                pulseTool(TOOL_NAME)
+                task.wait(0.07) -- 70ms per cycle
+            end
+        end)
+    end
 
     function FPSDevourer:Stop()
         FPSDevourer.running = false
         FPSDevourer._stop = true
-        unequipMedusa()
     end
+
     player.CharacterAdded:Connect(function()
         FPSDevourer.running = false
         FPSDevourer._stop = true
