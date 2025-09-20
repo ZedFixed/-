@@ -1,6 +1,5 @@
 
 
-
 local Players = game:GetService("Players")
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
@@ -73,13 +72,13 @@ do
         task.spawn(function()
             while FPSDevourer.running and not FPSDevourer._stop do
                 equipTungBat()
-                task.wait(1.035)
+                task.wait(1)
                 unequipTungBat()
-                task.wait(1.035)
+                task.wait(1)
                 equipTungBat()
-                task.wait(0.50)
+                task.wait(0.10)
                 unequipTungBat()
-                task.wait(0.50)-- 0.035 + 0.035 = 0.07s
+                task.wait(0.10)-- 0.035 + 0.035 = 0.07s
             end
         end)
     end
