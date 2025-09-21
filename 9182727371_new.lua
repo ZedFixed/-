@@ -41,97 +41,91 @@ local ICON_SIZE = math.floor(16*SCALE)
 local BTN_ICON_PAD = math.floor(8*SCALE)
 local BTN_Y0 = math.floor(38*SCALE)
 
--- ========== FPS DEVOURER 1 (Bat) ==========
-local FPSDevourer_Bat = {}
+-- ========== FPS DEVOURER (CYCLE MODE) ==========
+local FPSDevourer = {}
 do
-    FPSDevourer_Bat.running = false
-    local TOOL_NAME = "Medusa's Head"
+    FPSDevourer.running = false
 
-    local function equipTool()
-        local character = player.Character
+    -- Helper: get all tools currently in Backpack
+    local function getTools()
         local backpack = player:FindFirstChild("Backpack")
-        if not character or not backpack then return false end
-        local tool = backpack:FindFirstChild(TOOL_NAME)
-        if tool then tool.Parent = character return true end
-        return false
-    end
-    local function unequipTool()
-        local character = player.Character
-        local backpack = player:FindFirstChild("Backpack")
-        if not character or not backpack then return false end
-        local tool = character:FindFirstChild(TOOL_NAME)
-        if tool then tool.Parent = backpack return true end
-        return false
+        if not backpack then return {} end
+        local tools = {}
+        for _, tool in ipairs(backpack:GetChildren()) do
+            if tool:IsA("Tool") then
+                table.insert(tools, tool)
+            end
+        end
+        return tools
     end
 
-    function FPSDevourer_Bat:Start()
-        if FPSDevourer_Bat.running then return end
-        FPSDevourer_Bat.running = true
-        FPSDevourer_Bat._stop = false
+    -- Equip one tool
+    local function equipTool(tool)
+        local character = player.Character
+        if character and tool and tool.Parent == player.Backpack then
+            tool.Parent = character
+        end
+    end
+
+    -- Unequip one tool
+    local function unequipTool(tool)
+        local character = player.Character
+        if character and tool and tool.Parent == character then
+            tool.Parent = player.Backpack
+        end
+    end
+
+    function FPSDevourer:Start()
+        if FPSDevourer.running then return end
+        FPSDevourer.running = true
+        FPSDevourer._stop = false
+
         task.spawn(function()
-            while FPSDevourer_Bat.running and not FPSDevourer_Bat._stop do
-                equipTool()
-                task.wait(2.00)
-                unequipTool()
-                task.wait(2.00)
+            while FPSDevourer.running and not FPSDevourer._stop do
+                local tools = getTools()
+
+                -- Forward: first to last
+                for i = 1, #tools do
+                    if not FPSDevourer.running or FPSDevourer._stop then break end
+                    local tool = tools[i]
+                    equipTool(tool)
+                    task.wait(0.035)
+                    unequipTool(tool)
+                    task.wait(0.035) -- ~0.07s per tool
+                end
+
+                -- Reverse: last to first
+                for i = #tools, 1, -1 do
+                    if not FPSDevourer.running or FPSDevourer._stop then break end
+                    local tool = tools[i]
+                    equipTool(tool)
+                    task.wait(0.035)
+                    unequipTool(tool)
+                    task.wait(0.035)
+                end
+
+                task.wait(0.10) -- small pause before looping
             end
         end)
     end
-    function FPSDevourer_Bat:Stop()
-        FPSDevourer_Bat.running = false
-        FPSDevourer_Bat._stop = true
-        unequipTool()
-    end
-    player.CharacterAdded:Connect(function()
-        FPSDevourer_Bat.running = false
-        FPSDevourer_Bat._stop = true
-    end)
-end
 
--- ========== FPS DEVOURER 2 (Sword) ==========
-local FPSDevourer_Sword = {}
-do
-    FPSDevourer_Sword.running = false
-    local TOOL_NAME = "Medusa's Head"
-
-    local function equipTool()
+    function FPSDevourer:Stop()
+        FPSDevourer.running = false
+        FPSDevourer._stop = true
+        -- Unequip any equipped tools when stopped
         local character = player.Character
-        local backpack = player:FindFirstChild("Backpack")
-        if not character or not backpack then return false end
-        local tool = backpack:FindFirstChild(TOOL_NAME)
-        if tool then tool.Parent = character return true end
-        return false
-    end
-    local function unequipTool()
-        local character = player.Character
-        local backpack = player:FindFirstChild("Backpack")
-        if not character or not backpack then return false end
-        local tool = character:FindFirstChild(TOOL_NAME)
-        if tool then tool.Parent = backpack return true end
-        return false
-    end
-
-    function FPSDevourer_Sword:Start()
-        if FPSDevourer_Sword.running then return end
-        FPSDevourer_Sword.running = true
-        FPSDevourer_Sword._stop = false
-        task.spawn(function()
-            while FPSDevourer_Sword.running and not FPSDevourer_Sword._stop do
-                equipTool()
-                task.wait(0.20)
-                unequipTool()
-                task.wait(0.20)
+        if character then
+            for _, tool in ipairs(character:GetChildren()) do
+                if tool:IsA("Tool") then
+                    tool.Parent = player.Backpack
+                end
             end
-        end)
+        end
     end
-    function FPSDevourer_Sword:Stop()
-        FPSDevourer_Sword.running = false
-        FPSDevourer_Sword._stop = true
-        unequipTool()
-    end
+
     player.CharacterAdded:Connect(function()
-        FPSDevourer_Sword.running = false
-        FPSDevourer_Sword._stop = true
+        FPSDevourer.running = false
+        FPSDevourer._stop = true
     end)
 end
 
@@ -139,7 +133,7 @@ end
 local old = playerGui:FindFirstChild("AkunBitchDevourerPanel")
 if old then old:Destroy() end
 
--- ========== PAINEL UI + DRAG MIRANDATWEEN STYLE ==========
+-- ========== PAINEL UI + DRAG ==========
 local gui = Instance.new("ScreenGui")
 gui.Name = "AkunBitchDevourerPanel"
 gui.ResetOnSpawn = false
@@ -148,7 +142,7 @@ gui.Parent = playerGui
 local main = Instance.new("Frame", gui)
 main.Name = "MainPanel"
 main.Size = UDim2.new(0, PANEL_WIDTH, 0, PANEL_HEIGHT)
-main.Position = UDim2.new(1, -PANEL_WIDTH-10, 0, 10)
+main.Position = UDim2.new(1, -PANEL_WIDTH-10, 0, 10) -- canto superior direito
 main.BackgroundColor3 = Color3.fromRGB(13,13,13)
 main.BorderSizePixel = 0
 main.Active = true
@@ -247,15 +241,8 @@ local function makeToggleBtn(parent, label, y, callback)
     end
 end
 
--- 🔴 ONE BUTTON CONTROLS BOTH DEVOURERS
 local btnFPSDevourer, setFPSDevourerState = makeToggleBtn(main, "AkunBitch Devourer", BTN_Y0, function(on)
-    if on then
-        FPSDevourer_Bat:Start()
-        FPSDevourer_Sword:Start()
-    else
-        FPSDevourer_Bat:Stop()
-        FPSDevourer_Sword:Stop()
-    end
+    if on then FPSDevourer:Start() else FPSDevourer:Stop() end
 end)
 
 -- Reseta botão OFF ao trocar de personagem e tira acessórios
