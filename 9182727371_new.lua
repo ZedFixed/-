@@ -89,9 +89,9 @@ do
                     if not FPSDevourer.running or FPSDevourer._stop then break end
                     local tool = tools[i]
                     equipTool(tool)
-                    task.wait(0.035)
+                    task.wait(0.15)
                     unequipTool(tool)
-                    task.wait(0.035) -- ~0.07s per tool
+                    task.wait(0.15) -- ~0.07s per tool
                 end
 
                 -- Reverse: last to first
@@ -99,9 +99,9 @@ do
                     if not FPSDevourer.running or FPSDevourer._stop then break end
                     local tool = tools[i]
                     equipTool(tool)
-                    task.wait(0.035)
+                    task.wait(0.15)
                     unequipTool(tool)
-                    task.wait(0.035)
+                    task.wait(0.15)
                 end
 
                 task.wait(0.10) -- small pause before looping
